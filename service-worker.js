@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hua-yu-wu-v1';
+const CACHE_NAME = 'hua-yu-wu-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,9 +11,9 @@ const APP_SHELL = [
   './model.js',
   './app.js',
   './pwa.js',
-  './icons/icon-180.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icon-180.png',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
