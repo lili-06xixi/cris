@@ -1,8 +1,8 @@
 const $=s=>document.querySelector(s), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DB='hua-yu-wu-v1', STORE='records';
-let db, records=[], selected=null, editing=null, image='', images=[], view='home', filter='全部', showcaseMode='commission', showcaseSelection=null;
+let db, records=[], selected=null, editing=null, images=[], view='home', filter='全部', showcaseMode='commission', showcaseSelection=null;
 const commissions=()=>records.filter(x=>x.type==='commission'), products=()=>records.filter(x=>x.type==='product'), byId=id=>records.find(x=>x.id===id);
-const {safeImage,coverImage,showcaseItems,moveImage,normalizeRecord,normalizeBackup,calculateTotals}=RecordModel;
+const {safeImage,validImage,coverImage,imageFileName,showcaseItems,moveImage,normalizeRecord,normalizeBackup,calculateTotals}=RecordModel;
 const money=value=>'¥'+new Intl.NumberFormat('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(value);
 function openDB(){return new Promise((ok,no)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
 function tx(mode,work){return new Promise((ok,no)=>{let t=db.transaction(STORE,mode),result;try{result=work(t.objectStore(STORE))}catch(e){t.abort();no(e);return}t.oncomplete=()=>ok(result?.result);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error)})}
@@ -31,7 +31,7 @@ function render(){
   $('#items').innerHTML=list.length?list.map(commissionCard).join(''):`<div class="empty"><div class="empty-symbol">✳</div><h3>${commissions().length?'没有找到符合条件的约稿':'这里还空着，等你的第一份收藏'}</h3><p>${commissions().length?'试试其他关键词或筛选条件。':'先记录一份约稿，再为它添加制品吧。'}</p>${commissions().length?'':'<button class="primary" data-create="commission">＋ 记录新约稿</button>'}</div>`;
 }
 function commissionCard(c){let n=products().filter(p=>p.commissionId===c.id).length,img=coverImage(c);return `<article class="card"><div class="card-image">${img?`<img src="${img}" alt="${esc(c.title)}">`:'<span class="placeholder">✿</span>'}</div><div class="card-body"><span class="card-kicker">COMMISSION</span><h3>${esc(c.title)}</h3><p>${esc([c.platform,c.artist].filter(Boolean).join(' · ')||'尚未填写平台与画师')}</p><div class="card-actions"><button data-products="${esc(c.id)}">制品 ${n} 件 →</button><button data-edit="${esc(c.id)}">编辑</button></div></div></article>`}
-function productCard(p){let img=safeImage(p.image),source=byId(p.commissionId);return `<button class="card product-card" data-edit="${esc(p.id)}"><div class="card-image">${img?`<img src="${img}" alt="${esc(p.title)}">`:'<span class="placeholder">◈</span>'}</div><div class="card-body"><span class="card-kicker">CREATION</span><h3>${esc(p.title)}</h3><p>${esc([p.kind,p.craft,p.size].filter(Boolean).join(' · ')||'尚未填写详情')}</p><p class="product-source">${source?'关联：'+esc(source.title):'独立制品'}</p></div></button>`}
+function productCard(p){let img=coverImage(p),source=byId(p.commissionId);return `<button class="card product-card" data-edit="${esc(p.id)}"><div class="card-image">${img?`<img src="${img}" alt="${esc(p.title)}">`:'<span class="placeholder">◈</span>'}</div><div class="card-body"><span class="card-kicker">CREATION</span><h3>${esc(p.title)}</h3><p>${esc([p.kind,p.craft,p.size].filter(Boolean).join(' · ')||'尚未填写详情')}</p><p class="product-source">${source?'关联：'+esc(source.title):'独立制品'}</p></div></button>`}
 function renderAllProducts(){
   $('#breadcrumb').textContent='我的收藏 / 制品清单';
   const list=products().sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
@@ -39,12 +39,12 @@ function renderAllProducts(){
 }
 function showcaseCard(item){
   const isProduct=item.type==='product', linked=isProduct?0:products().filter(p=>p.commissionId===item.id).length;
-  const img=isProduct?safeImage(item.image):coverImage(item);
+  const img=coverImage(item);
   const caption=isProduct?(item.kind||'制品收藏'):(linked?`展开相关制品 · ${linked} 件 →`:'暂无关联制品');
   return `<button class="shelf-card ${!isProduct&&!linked?'shelf-card-static':''}" type="button" ${!isProduct&&!linked?'disabled':''} data-showcase-open="${esc(item.id)}"><span class="shelf-frame">${img?`<img src="${img}" alt="${esc(item.title)}">`:`<span class="shelf-placeholder">${isProduct?'◈':'✿'}</span>`}</span><span class="shelf-caption"><strong>${esc(item.title)}</strong><small>${esc(caption)}</small></span></button>`;
 }
 function showcaseProductInfo(p){
-  const source=byId(p.commissionId),img=safeImage(p.image);
+  const source=byId(p.commissionId),img=coverImage(p);
   const fields=[p.kind&&'类型：'+p.kind,p.craft&&'工艺：'+p.craft,p.size&&'尺寸：'+p.size,p.quantity&&'数量：'+p.quantity,p.amount&&'制作费用：¥'+p.amount,p.date&&'日期：'+p.date,source&&'关联约稿：'+source.title].filter(Boolean);
   return `<article class="showcase-product-card"><div class="showcase-product-photo">${img?`<img src="${img}" alt="${esc(p.title)}">`:'<span class="shelf-placeholder">◈</span>'}</div><div class="showcase-product-copy"><span class="eyebrow">LITTLE CREATION</span><h2>${esc(p.title)}</h2><div class="showcase-details">${fields.length?fields.map(value=>`<span>${esc(value)}</span>`).join(''):'<span>尚未填写详细信息</span>'}</div>${p.notes?`<p>${esc(p.notes)}</p>`:''}</div></article>`;
 }
@@ -97,19 +97,14 @@ function updateType(type){
   $('#amount-label').firstChild.textContent=product?'制作费用（整批，元）':'价格（元）';
   $('#title-label').firstChild.textContent=product?'制品名称 ':'约稿名称 ';
 }
-function preview(){
-  const img=safeImage(image);
-  $('#image-preview').innerHTML=img?`<img src="${img}" alt="制品照片预览"><button type="button" id="remove-image">移除图片</button>`:'';
-  $('#image-preview').classList.toggle('hidden',!img||$('#editor').dataset.type!=='product');
-}
 function previewGallery(){
-  $('#image-gallery-preview').classList.toggle('hidden',!images.length||$('#editor').dataset.type!=='commission');
-  $('#image-gallery-preview').innerHTML=images.map((src,i)=>`<div class="gallery-item"><img src="${src}" alt="第 ${i+1} 张约稿图"><span>${i===0?'封面':'第 '+(i+1)+' 张'}</span><div><button type="button" data-move-image="${i}" data-direction="-1" ${i===0?'disabled':''} aria-label="向前移动第 ${i+1} 张">←</button><button type="button" data-move-image="${i}" data-direction="1" ${i===images.length-1?'disabled':''} aria-label="向后移动第 ${i+1} 张">→</button><button type="button" data-remove-gallery="${i}" aria-label="移除第 ${i+1} 张">移除</button></div></div>`).join('');
+  const product=$('#editor').dataset.type==='product',label=product?'制品照片':'约稿图';
+  $('#image-gallery-preview').classList.toggle('hidden',!images.length);
+  $('#image-gallery-preview').innerHTML=images.map((src,i)=>`<div class="gallery-item"><img src="${src}" alt="第 ${i+1} 张${label}"><span>${i===0?'封面':'第 '+(i+1)+' 张'}</span><div><button type="button" data-move-image="${i}" data-direction="-1" ${i===0?'disabled':''} aria-label="向前移动第 ${i+1} 张">←</button><button type="button" data-move-image="${i}" data-direction="1" ${i===images.length-1?'disabled':''} aria-label="向后移动第 ${i+1} 张">→</button><button type="button" data-remove-gallery="${i}" aria-label="移除第 ${i+1} 张">移除</button><button type="button" class="download-original" data-download-image="${i}">下载原图</button></div></div>`).join('');
 }
 function openEditor(type,id){
   editing=id?byId(id):null;
-  image=safeImage(editing?.image);
-  images=type==='commission'&&editing?normalizeRecord(editing).images:[];
+  images=editing?normalizeRecord(editing).images:[];
   $('#record-form').reset();$('#editor').dataset.type=type;updateType(type);
   $('#dialog-title').textContent=(editing?'编辑':'记录新')+(type==='product'?'制品':'约稿');
   $('#delete-record').classList.toggle('hidden',!editing);
@@ -117,7 +112,7 @@ function openEditor(type,id){
   if(editing)for(const [key,value] of Object.entries(editing)){const field=$('#record-form').elements.namedItem(key);if(field&&field.type!=='file'&&field.type!=='checkbox')field.value=value??''}
   if(type==='commission')$('#record-form').elements.namedItem('showcase').checked=editing?.showcase!==false;
   if(type==='product')$('#commission-select').value=editing?.commissionId||selected||'';
-  preview();previewGallery();$('#editor').showModal();
+  previewGallery();$('#editor').showModal();
 }
 const autoTitle=t=>`${t==='product'?'制品':'约稿'} #${String(records.filter(x=>x.type===t).length+1).padStart(3,'0')}`;
 async function submit(e){
@@ -128,7 +123,7 @@ async function submit(e){
   else {
     const commissionId=String(data.get('commissionId')||'');
     if(commissionId&&!commissions().some(c=>c.id===commissionId)){toast('关联约稿不存在，请重新选择');return}
-    Object.assign(item,{image,commissionId,craft:String(data.get('craft')||'').trim(),size:String(data.get('size')||'').trim(),kind:String(data.get('kind')||'').trim(),quantity:data.get('quantity')||'',date:data.get('date')||''});
+    Object.assign(item,{images:[...images],image:images[0]||'',commissionId,craft:String(data.get('craft')||'').trim(),size:String(data.get('size')||'').trim(),kind:String(data.get('kind')||'').trim(),quantity:data.get('quantity')||'',date:data.get('date')||''});
   }
   try{await save(item);$('#editor').close();toast(editing?'记录已更新':'记录已添加')}catch(err){console.error(err);toast('保存失败，请检查浏览器储存空间')}
 }
@@ -167,7 +162,10 @@ document.addEventListener('click',event=>{
   }
   node=event.target.closest('[data-move-image]');if(node){const from=Number(node.dataset.moveImage);images=moveImage(images,from,from+Number(node.dataset.direction));previewGallery();return}
   node=event.target.closest('[data-remove-gallery]');if(node){images.splice(Number(node.dataset.removeGallery),1);previewGallery();return}
-  if(event.target.id==='remove-image'){image='';$('[name=image]').value='';preview()}
+  node=event.target.closest('[data-download-image]');if(node){
+    const index=Number(node.dataset.downloadImage),title=String($('#record-form').elements.namedItem('title').value||'').trim()||editing?.title||'图片';
+    const a=document.createElement('a');a.href=images[index];a.download=imageFileName({type:$('#editor').dataset.type,title,images},index);a.click();return;
+  }
 });
 $('#new-commission').onclick=()=>openEditor('commission');
 $('#new-hero-product').onclick=()=>openEditor('product');
@@ -181,17 +179,12 @@ $('#close-dialog').onclick=$('#cancel-dialog').onclick=()=>$('#editor').close();
 $('#record-form').onsubmit=submit;$('#delete-record').onclick=del;$('#search').oninput=render;
 $('#export-backup').onclick=exportBackup;$('#import-backup').onclick=()=>$('#backup-file').click();$('#backup-file').onchange=e=>importBackup(e.target.files[0]);
 function readImage(file){return new Promise((ok,no)=>{const reader=new FileReader();reader.onload=()=>ok(reader.result);reader.onerror=()=>no(reader.error);reader.readAsDataURL(file)})}
-function validImage(file){return file.size<=8*1024*1024&&['image/jpeg','image/png','image/webp'].includes(file.type)}
-$('[name=image]').onchange=async event=>{
-  const file=event.target.files[0];if(!file)return;
-  if(!validImage(file)){toast('请选择小于 8MB 的 JPG、PNG 或 WebP 图片');event.target.value='';return}
-  try{image=safeImage(await readImage(file));preview()}catch(err){console.error(err);toast('图片读取失败')}
-};
-$('[name=images]').onchange=async event=>{
+async function addImages(event){
   const files=[...event.target.files];if(!files.length)return;
-  if(files.some(file=>!validImage(file))){toast('每张图片须为小于 8MB 的 JPG、PNG 或 WebP');event.target.value='';return}
+  if(files.some(file=>!validImage(file))){toast('每张图片须为 JPG、PNG 或 WebP');event.target.value='';return}
   try{for(const file of files){const src=safeImage(await readImage(file));if(src)images.push(src)}previewGallery()}
   catch(err){console.error(err);toast('图片读取失败')}
   finally{event.target.value=''}
-};
+}
+$('[name=images]').onchange=addImages;const productImageInput=$('[name=image]');productImageInput.multiple=true;productImageInput.onchange=addImages;$('#product-image-field small').textContent='可一次选择多张，第一张是封面；原图保存，支持 JPG、PNG、WebP';
 $('#today').textContent=new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long',day:'numeric'}).format(new Date());openDB().then(x=>{db=x;return load()}).catch(err=>{console.error(err);toast('无法打开浏览器储存')});

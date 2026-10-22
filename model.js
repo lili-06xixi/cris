@@ -5,19 +5,31 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   const imagePattern=/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
   const safeImage=value=>typeof value==='string'&&imagePattern.test(value)?value:'';
+  const validImage=file=>!!file&&['image/jpeg','image/png','image/webp'].includes(file.type);
+  function normalizeImages(item){
+    const images=Array.isArray(item.images)?item.images.map(safeImage).filter(Boolean):[];
+    if(!images.length&&safeImage(item.image))images.push(item.image);
+    return images;
+  }
   function normalizeRecord(item){
     const result={...item};
     if(item.type==='commission'){
       result.showcase=item.showcase!==false;
-      result.images=Array.isArray(item.images)?item.images.map(safeImage).filter(Boolean):[];
-      if(!result.images.length&&safeImage(item.image))result.images=[item.image];
+      result.images=normalizeImages(item);
     }else if(item.type==='product'){
-      result.image=safeImage(item.image);
+      result.images=normalizeImages(item);
+      result.image=result.images[0]||'';
       result.commissionId=typeof item.commissionId==='string'?item.commissionId:'';
     }
     return result;
   }
   function coverImage(item){return normalizeRecord(item).images[0]||''}
+  function imageFileName(item,index){
+    const src=normalizeRecord(item).images[index]||'';
+    const kind=/^data:image\/(png|jpeg|webp);/.exec(src)?.[1]||'png';
+    const title=String(item.title||'图片').replace(/[<>:"/\\|?*]/g,'_').trim()||'图片';
+    return `${title}-原图-${index+1}.${kind==='jpeg'?'jpg':kind}`;
+  }
   function showcaseItems(records,mode){return records.filter(item=>mode==='product'?item.type==='product':item.type==='commission'&&item.showcase!==false)}
   function moveImage(images,from,to){
     if(from<0||to<0||from>=images.length||to>=images.length)return [...images];
@@ -44,5 +56,5 @@
     }
     return {commissions:cents.commissions/100,products:cents.products/100,total:(cents.commissions+cents.products)/100};
   }
-  return {safeImage,normalizeRecord,coverImage,showcaseItems,moveImage,normalizeBackup,calculateTotals};
+  return {safeImage,validImage,normalizeRecord,coverImage,imageFileName,showcaseItems,moveImage,normalizeBackup,calculateTotals};
 });
