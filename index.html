@@ -4,8 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f3ed">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="画与物">
   <meta name="description" content="记录约稿、收藏作品，也记下每件由作品诞生的小制品。">
   <title>画与物 · 约稿制品记录</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="layout.css">
   <link rel="stylesheet" href="responsive.css">
@@ -42,5 +48,6 @@
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="model.js"></script>
   <script src="app.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>
