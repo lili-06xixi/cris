@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f3ed">
+  <meta name="description" content="记录约稿、收藏作品，也记下每件由作品诞生的小制品。">
+  <title>画与物 · 约稿制品记录</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet" href="features.css">
+  <link rel="stylesheet" href="showcase.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#home" aria-label="画与物首页"><span class="brand-mark">画<span>·</span>物</span><span class="brand-caption">COMMISSION & CREATIONS</span></a>
+      <nav class="nav" aria-label="主导航">
+        <button class="nav-item active" data-view="home"><span class="nav-icon">⌂</span> 总览</button>
+        <button class="nav-item" data-view="commissions"><span class="nav-icon">▧</span> 约稿收藏</button>
+        <button class="nav-item" data-view="products"><span class="nav-icon">◈</span> 制品清单</button>
+        <button class="nav-item" data-view="showcase"><span class="nav-icon">▤</span> 展览柜</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="little-flower">✳</div><p>把喜欢的画，<br>和由它诞生的小物，<br>都好好收起来。</p><span>YOUR CREATIVE ARCHIVE</span></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><span id="breadcrumb">我的收藏 / 总览</span><div class="topbar-actions"><button id="export-backup" title="导出备份">导出备份</button><button id="import-backup" title="导入备份">导入备份</button><input type="file" id="backup-file" accept="application/json,.json" hidden><span class="topbar-date" id="today"></span></div></header>
+      <div id="main-view">
+      <section class="hero"><div class="hero-copy"><span class="eyebrow">A LITTLE SPACE FOR THE THINGS YOU LOVE</span><h1>每一幅画，<br>都有它的<span>故事。</span></h1><p>从灵感到约稿，再到手心里的小制品。<br>在这里，收藏每一次心动与创造。</p><div class="hero-actions"><button class="primary" id="new-commission">＋ 记录新约稿 <span>↗</span></button><button class="primary hero-secondary" id="new-hero-product">＋ 记录新制品 <span>↗</span></button><button class="primary hero-showcase" id="open-showcase">查看展览柜 <span>↗</span></button></div></div><div class="hero-art" aria-hidden="true"><div class="art-back"></div><div class="art-card"><span>✦</span><div class="art-sun"></div><div class="art-hill one"></div><div class="art-hill two"></div></div><div class="art-note">made with love<br><span>♡</span></div><div class="art-spark a">✳</div><div class="art-spark b">✦</div></div></section>
+      <section class="stats" aria-label="收藏统计"><div><span>约稿作品</span><strong id="stat-commissions">0</strong><small>pieces of art</small></div><div><span>衍生制品</span><strong id="stat-products">0</strong><small>little creations</small></div><div class="stats-total"><button id="open-costs" type="button"><span>总费用</span><strong id="stat-total">¥0.00</strong><small>点击查看费用明细 →</small></button></div></section>
+      <section class="collection" id="collection"><div class="section-heading"><div><span class="eyebrow" id="section-eyebrow">YOUR COLLECTION</span><h2 id="section-title">最近收藏 <span>✳</span></h2><p id="section-subtitle">每一份喜欢，都值得被认真记录。</p></div></div><div class="filter-row"><div class="chips" id="filters"></div><label class="search"><span>⌕</span><input id="search" type="search" placeholder="搜索约稿" aria-label="搜索约稿"></label></div><div id="items" class="card-grid"></div></section>
+      </div>
+      <section id="product-page" class="product-page hidden"><button class="back-link" id="back-to-commissions">← 返回约稿</button><div id="commission-detail"></div><div class="section-heading product-heading"><div><span class="eyebrow">MADE FROM THIS ART</span><h2>这张画的制品 <span>✳</span></h2><p>把喜欢的画，变成触手可及的小物。</p></div><button class="text-action" id="new-product">＋ 添加制品 <span>↗</span></button></div><div id="product-items" class="card-grid"></div></section>
+      <section id="all-products" class="product-page hidden"><div class="section-heading product-heading"><div><span class="eyebrow">LITTLE CREATIONS</span><h2>制品清单 <span>✳</span></h2><p>独立记录制品，也可在之后关联约稿。</p></div><button class="text-action" id="new-standalone-product">＋ 添加制品 <span>↗</span></button></div><div id="all-product-items" class="card-grid"></div></section>
+      <section id="showcase-page" class="showcase-page hidden"><div id="showcase-gallery"><div class="showcase-heading"><div><span class="eyebrow">A CABINET OF FAVORITES</span><h1>展览柜 <span>✳</span></h1><p>把喜欢的画与制品，放在这里慢慢欣赏。</p></div><div class="showcase-modes" role="group" aria-label="展览柜展示方式"><button type="button" data-showcase-mode="commission">稿件优先</button><button type="button" data-showcase-mode="product">只展示制品</button></div></div><div id="showcase-items"></div></div><div id="showcase-detail" class="hidden"></div></section>
+      <footer>画与物 <span>✦</span> 为喜欢的事留一个位置</footer>
+    </main>
+  </div>
+  <dialog id="editor"><form id="record-form"><div class="dialog-head"><div><span class="eyebrow">ADD TO YOUR COLLECTION</span><h2 id="dialog-title">记录新约稿</h2></div><button type="button" class="close" id="close-dialog" aria-label="关闭">×</button></div><div class="form-body"><label id="title-label">名称 <small>选填，留空会自动命名</small><input name="title" maxlength="80" placeholder="例如：春日小像"></label><div class="form-two" id="commission-fields"><label>平台<input name="platform" maxlength="60" placeholder="例如：米画师"></label><label>画师<input name="artist" maxlength="60" placeholder="画师昵称"></label></div><div class="form-two hidden" id="product-fields"><label>工艺<input name="craft" maxlength="80" placeholder="例如：烫金、滴胶"></label><label>尺寸<input name="size" maxlength="60" placeholder="例如：8 × 10 cm"></label></div><label id="relation-field" class="hidden">关联约稿<select name="commissionId" id="commission-select"></select></label><div class="form-two" id="commission-dates"><label>约稿日期<input name="commissionDate" type="date"></label><label>交稿日期<input name="deliveryDate" type="date"></label></div><label id="showcase-field" class="showcase-toggle"><input name="showcase" type="checkbox" checked> 加入展览柜</label><div class="form-two hidden" id="product-extra"><label>制品类型<input name="kind" maxlength="60" placeholder="例如：亚克力立牌"></label><label>数量<input name="quantity" type="number" min="1" step="1" placeholder="选填"></label></div><div class="form-two"><label id="date-label" class="hidden">日期<input name="date" type="date"></label><label id="amount-label">价格（元）<input name="amount" type="number" min="0" step="0.01" placeholder="选填"></label></div><label id="commission-image-field">约稿图片 <small>可一次选多张，第一张是封面；JPG、PNG、WebP，每张小于 8MB</small><input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div id="image-gallery-preview" class="image-gallery-preview hidden"></div><label id="product-image-field" class="hidden">制品照片 <small>JPG、PNG 或 WebP，建议小于 8MB</small><input name="image" type="file" accept="image/jpeg,image/png,image/webp"></label><div id="image-preview" class="image-preview hidden"></div><label>备注<textarea name="notes" rows="3" maxlength="1000" placeholder="想留下的细节…"></textarea></label></div><div class="dialog-actions"><button type="button" class="delete hidden" id="delete-record">删除记录</button><div class="action-right"><button type="button" class="secondary" id="cancel-dialog">取消</button><button type="submit" class="primary" id="save-record">保存记录 ↗</button></div></div></form></dialog>
+  <dialog id="cost-dialog"><div class="dialog-head"><div><span class="eyebrow">SPENDING OVERVIEW</span><h2>费用明细</h2></div><button type="button" class="close" id="close-costs" aria-label="关闭">×</button></div><div class="cost-breakdown"><div><span>约稿费用</span><strong id="cost-commissions">¥0.00</strong></div><div><span>制品制作费用</span><strong id="cost-products">¥0.00</strong></div><div class="cost-grand"><span>总费用</span><strong id="cost-total">¥0.00</strong></div></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="model.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

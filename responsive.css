@@ -1,0 +1,2 @@
+@media(max-width:900px){.hero-art{opacity:.13;pointer-events:none}.hero-copy{max-width:430px}.hero h1,.hero p{position:relative;z-index:1}.filter-row{flex-wrap:wrap}.search{flex:1;min-width:190px}.search input{width:100%}}
+@media(max-width:620px){.hero-art{display:none}.hero{min-height:285px}.stats span{font-size:10px}.stats strong{font-size:29px}.filter-row{display:flex;flex-direction:column;align-items:stretch}.search{min-width:0}.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
